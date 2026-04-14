@@ -11,19 +11,32 @@ services:
   web:
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
+    image: ostad_django_aws:latest
     container_name: django_app
-    command: sh -c "python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:8000"
+    # command: sh -c "python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:8000"
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
+    # command: python manage.py runserver 0.0.0.0:8000
     env_file:
       - .env
     environment:
       DB_HOST: db
     volumes:
       - .:/app
-    ports:
-      - "8005:8000"
+    # ports:
+    #   - "8005:8000"
     depends_on:
       - db
+  nginx:
+    image: nginx:latest
+    container_name: nginx_server
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - .:/app
+    depends_on:
+      - web
 
 volumes:
   postgres_data:
