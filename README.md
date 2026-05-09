@@ -66,6 +66,8 @@ PostgreSQL Server
 Nginx → Django App
 proxy_pass http://172.31.15.163:8000;
 
+changes the ip addressess. 
+
 All the screenshots here: 
 
 https://drive.google.com/drive/folders/1B-OfVWj0z5YGI1a9KXIhgFrTUfxd0GJ7?usp=sharing
