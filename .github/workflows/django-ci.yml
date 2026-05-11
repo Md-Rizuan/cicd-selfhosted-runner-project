@@ -83,8 +83,8 @@ jobs:
       - name: Run migrations
         env:
           DB_NAME: testdb
-          DB_USER: testuser
-          DB_PASSWORD: testpass
+          DB_USER: postgres
+          DB_PASSWORD: 123456
           DB_HOST: 127.0.0.1
         run: ./venv/bin/python manage.py migrate
 
