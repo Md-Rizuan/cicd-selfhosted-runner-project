@@ -55,7 +55,6 @@
 #         run: |
 #           source env/bin/activate
 #           python manage.py test
-
 name: Django CI Pipeline
 
 on:
@@ -65,49 +64,34 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U testuser"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Check Python
+        run: python3 --version
+
+      - name: Create venv
+        run: python3 -m venv venv
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          ./venv/bin/pip install -r requirements.txt
 
       - name: Run migrations
         env:
-          DB_HOST: 127.0.0.1
           DB_NAME: testdb
           DB_USER: testuser
           DB_PASSWORD: testpass
-        run: python manage.py migrate
+          DB_HOST: 127.0.0.1
+        run: ./venv/bin/python manage.py migrate
 
       - name: Run tests
         env:
-          DB_HOST: 127.0.0.1
           DB_NAME: testdb
           DB_USER: testuser
           DB_PASSWORD: testpass
-        run: python manage.py test
+          DB_HOST: 127.0.0.1
+        run: ./venv/bin/python manage.py test
