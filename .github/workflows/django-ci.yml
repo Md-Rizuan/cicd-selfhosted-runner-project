@@ -25,6 +25,37 @@
 #       - name: Run tests
 #         run: python manage.py test
 
+# name: Django CI Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   build:
+#     runs-on: self-hosted
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Check Python version
+#         run: python3 --version
+
+#       - name: Create venv
+#         run: python3 -m venv venv
+
+#       - name: Install dependencies
+#         run: |
+#           source venv/bin/activate
+#           pip install -r requirements.txt
+
+#       - name: Run tests
+#         run: |
+#           source env/bin/activate
+#           python manage.py test
+
 name: Django CI Pipeline
 
 on:
@@ -40,18 +71,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check Python version
+      - name: Check Python
         run: python3 --version
 
-      - name: Create venv
+      - name: Create virtual environment
         run: python3 -m venv venv
 
       - name: Install dependencies
         run: |
-          source venv/bin/activate
-          pip install -r requirements.txt
+          ./venv/bin/pip install --upgrade pip
+          ./venv/bin/pip install -r requirements.txt
+
+      - name: Run migrations
+        run: ./venv/bin/python manage.py migrate
 
       - name: Run tests
-        run: |
-          source env/bin/activate
-          python manage.py test
+        run: ./venv/bin/python manage.py test
