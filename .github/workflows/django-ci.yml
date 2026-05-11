@@ -65,28 +65,8 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check Python
-        run: python3 --version
-
-      - name: Create virtual environment
-        run: python3 -m venv venv
-
-      - name: Install dependencies
-        run: |
-          ./venv/bin/pip install --upgrade pip
-          ./venv/bin/pip install -r requirements.txt
-
-      - name: Run migrations
-        run: ./venv/bin/python manage.py migrate
-
-      - name: Run tests
-        run: ./venv/bin/python manage.py test
     services:
       postgres:
         image: postgres:15
@@ -96,3 +76,38 @@ jobs:
           POSTGRES_PASSWORD: testpass
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U testuser"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run migrations
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: testdb
+          DB_USER: testuser
+          DB_PASSWORD: testpass
+        run: python manage.py migrate
+
+      - name: Run tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: testdb
+          DB_USER: testuser
+          DB_PASSWORD: testpass
+        run: python manage.py test
