@@ -1,73 +1,94 @@
+Workflow YAML file : .github/workflows/
 
-I have created three instances. 
-one is for nginx rest two is for app-server and db server. 
-all the instances was in same vpc and same security groups. But only nginx-server had the public ip rest of the two have only single private IP. We just forward nginx reverse froxy to app-server and db server. 
+Screenshot of successful pipeline execution(Drive): https://drive.google.com/drive/folders/1uI6A5-CqEGepnPsia8oZBbsmBFuWDDx6?usp=sharing
 
+CI/CD stands for:
 
-Architecture Setup was:
- Internet
-                        |
-                        v
-          +---------------------------+
-          |   Presentation Layer      |
-          |      Nginx EC2 Server     |
-          |      (Public Access)      |
-          +---------------------------+
-                        |
-                        | Private Communication
-                        v
-          +---------------------------+
-          |    Application Layer      |
-          | Django + Gunicorn Server  |
-          |        EC2 Instance       |
-          +---------------------------+
-                        |
-                        | Private Communication
-                        v
-          +---------------------------+
-          |       Data Layer          |
-          |    PostgreSQL Server      |
-          |        EC2 Instance       |
-          +---------------------------+
+ 
+ CI = Continuous Integration
+ 
+ 
+ CD = Continuous Delivery / Continuous Deployment
+ 
+ 
+ It is a modern software development practice used in tools like GitHub Actions, Jenkins, GitLab CI, etc.
 
-          In here only nginx ec2 server will access from the public. 
+Self-hosted Runner: 
+ A self-hosted runner in GitHub Actions is:
 
+  A machine (My own server, PC, or VM) that configure to run GitHub Actions jobs instead of using GitHub’s cloud machines.
 
-          Nginx Server Security Group:
+Workflow execution process:
 
-          HTTP:80
-          Source:0.0.0.0/0
-          SSH:22
+ The GitHub Actions workflow execution process in GitHub follows a clear pipeline of stages from trigger to completion.
+ Common triggers: push
+ Example: Developer pushes code → workflow starts
 
-          Application Server:
-          Custom TCP:8000
-          SSH:22
-          Source: Nginx Security Group(Important)
-          Db Server:
-          PgSQL: 5432
-          Source: Application Security Group
+ Workflow is Loaded
+
+GitHub:
+  
+  reads .github/workflows/*.yml
+  checks matching trigger rules
 
 
-          Then I install required nginx, app in app server pulling from the gitlab then setup postgres in db server.
+   9. Workflow Completion
 
-          Configure the django Database settings.
+  When all jobs finish:
 
-Connectiviy between layrs:
-
-Browser
-   ↓
-Nginx Public IP
-   ↓ port 8000
-Django App Server
-   ↓ port 5432
-PostgreSQL Server
+   workflow status becomes:
+   ✅ success
+   ❌ failed
+   ⏭ skipped
+Workflow summary: 
+   Trigger → Load Workflow → Create Jobs → Assign Runner → Execute Steps → Logs → Job Result → Workflow Result
 
 
-Nginx → Django App
-proxy_pass http://172.31.15.163:8000;
 
-changes the ip addressess. 
+   YAML File:
 
-All the screenshots here: 
 
-https://drive.google.com/drive/folders/1B-OfVWj0z5YGI1a9KXIhgFrTUfxd0GJ7?usp=sharing
+   
+name: Django CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Python
+        run: python3 --version
+
+      - name: Create venv
+        run: python3 -m venv venv
+
+      - name: Install dependencies
+        run: |
+          ./venv/bin/pip install -r requirements.txt
+
+      - name: Run migrations
+        env:
+          DB_NAME: testdb
+          DB_USER: postgres
+          DB_PASSWORD: 123456
+          DB_HOST: 127.0.0.1
+        run: ./venv/bin/python manage.py migrate
+
+      - name: Run tests
+        env:
+          DB_NAME: testdb
+          DB_USER: postgres
+          DB_PASSWORD: 123456
+          DB_HOST: 127.0.0.1
+        run: ./venv/bin/python manage.py test
+
+
+
